@@ -1,0 +1,515 @@
+{
+  "info": {
+    "name": "Atestado Escolar API",
+    "description": "Fluxo completo: login (JWT) -> criar API Key -> consumir os recursos com a chave.\n\nAs requisicoes encadeiam variaveis automaticamente via scripts de teste:\n- Login salva {{jwt}}\n- Criar API Key salva {{apiKey}} e {{apiKeyId}}\n- Criar Usuario/Curso/Disciplina/Turma/Atestado salvam seus respectivos ids\n\nTrocar de ambiente: edite a variavel `baseUrl` da colecao (producao x local).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://faculdadeapi.vercel.app/api", "type": "string" },
+    { "key": "jwt", "value": "", "type": "string" },
+    { "key": "apiKey", "value": "", "type": "string" },
+    { "key": "apiKeyId", "value": "", "type": "string" },
+    { "key": "usuarioId", "value": "", "type": "string" },
+    { "key": "cursoId", "value": "", "type": "string" },
+    { "key": "disciplinaId", "value": "", "type": "string" },
+    { "key": "turmaId", "value": "", "type": "string" },
+    { "key": "atestadoId", "value": "", "type": "string" },
+    { "key": "notificacaoId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('jwt', j.token);",
+                  "pm.test('recebeu token', () => pm.expect(j.token).to.be.a('string'));",
+                  "console.log('JWT salvo. Perfil:', j.usuario.perfil);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@escola.edu.br\",\n  \"senha\": \"Admin@123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. API Keys (admin / Bearer)",
+      "item": [
+        {
+          "name": "Criar API Key (salva {{apiKey}})",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('apiKey', j.key);",
+                  "pm.collectionVariables.set('apiKeyId', j.id);",
+                  "pm.test('recebeu a chave', () => pm.expect(j.key).to.be.a('string'));",
+                  "console.log('API Key salva:', j.key);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api-keys", "host": ["{{baseUrl}}"], "path": ["api-keys"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman - Teste\",\n  \"scopes\": [\n    \"usuarios:read\", \"usuarios:write\", \"usuarios:delete\",\n    \"atestados:read\", \"atestados:write\", \"atestados:delete\",\n    \"turmas:read\", \"turmas:write\", \"turmas:delete\",\n    \"notificacoes:read\", \"notificacoes:write\",\n    \"cursos:read\", \"cursos:write\",\n    \"disciplinas:read\", \"disciplinas:write\",\n    \"cronograma:read\", \"cronograma:write\",\n    \"relatorios:read\"\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar API Keys",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": { "raw": "{{baseUrl}}/api-keys", "host": ["{{baseUrl}}"], "path": ["api-keys"] }
+          }
+        },
+        {
+          "name": "Detalhe da API Key",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": { "raw": "{{baseUrl}}/api-keys/{{apiKeyId}}", "host": ["{{baseUrl}}"], "path": ["api-keys", "{{apiKeyId}}"] }
+          }
+        },
+        {
+          "name": "Atualizar API Key (nome/escopos)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api-keys/{{apiKeyId}}", "host": ["{{baseUrl}}"], "path": ["api-keys", "{{apiKeyId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman - Renomeada\"\n}" }
+          }
+        },
+        {
+          "name": "Documentacao filtrada (HTML)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/docs/key/{{apiKeyId}}", "host": ["{{baseUrl}}"], "path": ["docs", "key", "{{apiKeyId}}"] },
+            "description": "Abre no navegador para ver so os endpoints que esta chave acessa."
+          }
+        },
+        {
+          "name": "Revogar API Key (rode por ultimo)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": { "raw": "{{baseUrl}}/api-keys/{{apiKeyId}}", "host": ["{{baseUrl}}"], "path": ["api-keys", "{{apiKeyId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Usuarios (X-Api-Key)",
+      "item": [
+        {
+          "name": "Criar Usuario (salva {{usuarioId}})",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('usuarioId', j.id);",
+                  "console.log('Usuario criado id:', j.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Aluno Teste\",\n  \"email\": \"{{$randomEmail}}\",\n  \"senha\": \"Senha@123\",\n  \"perfil\": \"ALUNO\",\n  \"matricula\": \"M{{$randomInt}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar Usuarios",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Api-Key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] }
+          }
+        },
+        {
+          "name": "Buscar Usuario por id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Api-Key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/usuarios/{{usuarioId}}", "host": ["{{baseUrl}}"], "path": ["usuarios", "{{usuarioId}}"] }
+          }
+        },
+        {
+          "name": "Atualizar Usuario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/usuarios/{{usuarioId}}", "host": ["{{baseUrl}}"], "path": ["usuarios", "{{usuarioId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Aluno Teste (editado)\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Cursos e Disciplinas (X-Api-Key)",
+      "item": [
+        {
+          "name": "Criar Curso (salva {{cursoId}})",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('cursoId', j.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/cursos", "host": ["{{baseUrl}}"], "path": ["cursos"] },
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Curso {{$timestamp}}\"\n}" }
+          }
+        },
+        {
+          "name": "Listar Cursos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Api-Key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/cursos", "host": ["{{baseUrl}}"], "path": ["cursos"] }
+          }
+        },
+        {
+          "name": "Criar Disciplina (salva {{disciplinaId}})",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('disciplinaId', j.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/disciplinas", "host": ["{{baseUrl}}"], "path": ["disciplinas"] },
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Disciplina {{$timestamp}}\",\n  \"cargaHoraria\": 60\n}" }
+          }
+        },
+        {
+          "name": "Listar Disciplinas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Api-Key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/disciplinas", "host": ["{{baseUrl}}"], "path": ["disciplinas"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Turmas (X-Api-Key)",
+      "item": [
+        {
+          "name": "Criar Turma (salva {{turmaId}})",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('turmaId', j.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/turmas", "host": ["{{baseUrl}}"], "path": ["turmas"] },
+            "body": { "mode": "raw", "raw": "{\n  \"codigoTurma\": \"T{{$timestamp}}\",\n  \"cursoId\": {{cursoId}},\n  \"disciplinaId\": {{disciplinaId}}\n}" }
+          }
+        },
+        {
+          "name": "Listar Turmas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Api-Key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/turmas", "host": ["{{baseUrl}}"], "path": ["turmas"] }
+          }
+        },
+        {
+          "name": "Vincular aluno a turma",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/turmas/{{turmaId}}", "host": ["{{baseUrl}}"], "path": ["turmas", "{{turmaId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"conectar\": [{{usuarioId}}]\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Atestados (X-Api-Key)",
+      "item": [
+        {
+          "name": "Criar Atestado (salva {{atestadoId}})",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('atestadoId', j.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/atestados", "host": ["{{baseUrl}}"], "path": ["atestados"] },
+            "body": { "mode": "raw", "raw": "{\n  \"usuarioId\": {{usuarioId}},\n  \"periodo\": \"10/03/2026 a 12/03/2026\",\n  \"motivo\": \"Atestado de teste via Postman\"\n}" }
+          }
+        },
+        {
+          "name": "Listar Atestados",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Api-Key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/atestados", "host": ["{{baseUrl}}"], "path": ["atestados"] }
+          }
+        },
+        {
+          "name": "Listar Atestados (filtro status)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Api-Key", "value": "{{apiKey}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/atestados?status=RECEBIDO",
+              "host": ["{{baseUrl}}"],
+              "path": ["atestados"],
+              "query": [{ "key": "status", "value": "RECEBIDO" }]
+            }
+          }
+        },
+        {
+          "name": "Buscar Atestado por id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Api-Key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/atestados/{{atestadoId}}", "host": ["{{baseUrl}}"], "path": ["atestados", "{{atestadoId}}"] }
+          }
+        },
+        {
+          "name": "Aprovar Atestado (gera notificacao)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/atestados/{{atestadoId}}/status", "host": ["{{baseUrl}}"], "path": ["atestados", "{{atestadoId}}", "status"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"APROVADO\"\n}" }
+          }
+        },
+        {
+          "name": "Recusar Atestado (exige justificativa)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/atestados/{{atestadoId}}/status", "host": ["{{baseUrl}}"], "path": ["atestados", "{{atestadoId}}", "status"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"RECUSADO\",\n  \"justificativaRecusa\": \"Documento ilegivel\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Notificacoes (X-Api-Key)",
+      "item": [
+        {
+          "name": "Listar Notificacoes (salva {{notificacaoId}})",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const arr = pm.response.json();",
+                  "if (Array.isArray(arr) && arr.length) {",
+                  "  pm.collectionVariables.set('notificacaoId', arr[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Api-Key", "value": "{{apiKey}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/notificacoes?usuarioId={{usuarioId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notificacoes"],
+              "query": [{ "key": "usuarioId", "value": "{{usuarioId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Marcar Notificacao como lida",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "X-Api-Key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/notificacoes/{{notificacaoId}}", "host": ["{{baseUrl}}"], "path": ["notificacoes", "{{notificacaoId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Cronograma e Relatorios (X-Api-Key)",
+      "item": [
+        {
+          "name": "Criar Cronograma",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/cronograma", "host": ["{{baseUrl}}"], "path": ["cronograma"] },
+            "body": { "mode": "raw", "raw": "{\n  \"anoLetivo\": 2026,\n  \"dataInicioSemestre\": \"2026-02-05\",\n  \"dataFimSemestre\": \"2026-06-28\",\n  \"periodosAvaliacao\": \"P1 e P2\"\n}" }
+          }
+        },
+        {
+          "name": "Listar Cronograma",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Api-Key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/cronograma", "host": ["{{baseUrl}}"], "path": ["cronograma"] }
+          }
+        },
+        {
+          "name": "Gerar Relatorio (atestados por periodo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/relatorios", "host": ["{{baseUrl}}"], "path": ["relatorios"] },
+            "body": { "mode": "raw", "raw": "{\n  \"tipo\": \"atestados_por_periodo\",\n  \"dataInicio\": \"2026-01-01\",\n  \"dataFim\": \"2026-12-31\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Testes de seguranca",
+      "item": [
+        {
+          "name": "Sem credencial -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('401 sem auth', () => pm.response.to.have.status(401));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] }
+          }
+        },
+        {
+          "name": "API Key gerenciando keys -> 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('403 - api key nao gerencia keys', () => pm.response.to.have.status(403));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Api-Key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/api-keys", "host": ["{{baseUrl}}"], "path": ["api-keys"] },
+            "description": "Gerenciar API keys exige JWT de admin. Uma API key recebe 403."
+          }
+        }
+      ]
+    }
+  ]
+}

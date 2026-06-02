@@ -1,0 +1,98 @@
+COMO FUNCIONA O ENVIO DE ARQUIVO NO ATESTADO
+=============================================
+
+Quando o aluno clica em "selecionar arquivo" e escolhe um PDF ou imagem
+do computador, acontece o seguinte:
+
+
+PASSO 1 — O arquivo é lido pelo browser
+-----------------------------------------
+O JavaScript usa uma ferramenta nativa do navegador chamada FileReader.
+Ela lê o arquivo do computador e converte o conteúdo para uma sequência
+de texto chamada base64.
+
+Base64 é basicamente uma forma de representar qualquer arquivo
+(imagem, PDF, etc.) como uma string de letras e números.
+
+Exemplo de como fica um PDF depois de converter:
+  "data:application/pdf;base64,JVBERi0xLjQgJ..."
+
+Exemplo de como fica uma imagem JPG:
+  "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ..."
+
+A string começa sempre dizendo o tipo do arquivo (pdf, jpeg, png)
+seguido do conteúdo convertido.
+
+
+PASSO 2 — O arquivo vira um campo normal do formulário
+-------------------------------------------------------
+Depois de convertido, essa string gigante de texto fica salva
+na memória do formulário, no campo "arquivoAnexo".
+
+Ou seja, para o sistema, o arquivo deixou de ser um arquivo
+e virou simplesmente um texto muito longo.
+
+
+PASSO 3 — É enviado para a API como JSON normal
+------------------------------------------------
+Quando o usuário clica em "Enviar Atestado", o sistema manda
+uma requisição para a API com todos os dados do formulário,
+incluindo o arquivo já convertido:
+
+  {
+    "usuarioId": 5,
+    "periodo": "10/03/2025 a 14/03/2025",
+    "motivo": "Consulta médica",
+    "arquivoAnexo": "data:application/pdf;base64,JVBERi0x..."
+  }
+
+Não tem nada de especial aqui, é um envio JSON normal.
+O arquivo está escondido dentro daquele campo de texto.
+
+
+PASSO 4 — A API salva no banco de dados
+----------------------------------------
+O banco de dados (PostgreSQL) recebe esse JSON e salva
+o campo arquivoAnexo como uma coluna de texto comum.
+
+O arquivo está "guardado" dentro do próprio banco de dados,
+sem precisar de nenhum servidor de arquivos separado.
+
+
+PASSO 5 — Na hora de exibir, o browser entende sozinho
+-------------------------------------------------------
+Quando alguém abre os detalhes do atestado, o sistema pega
+aquela string base64 do banco e coloca direto no HTML.
+
+O browser é inteligente e consegue mostrar o arquivo:
+  - Se for imagem:  <img src="data:image/jpeg;base64,..." />
+  - Se for PDF:     <iframe src="data:application/pdf;base64,..." />
+
+Não precisa baixar nada nem converter de volta. O browser
+faz tudo automaticamente.
+
+
+POR QUE FIZEMOS DESSA FORMA?
+==============================
+O sistema roda na Vercel (hospedagem serverless), que não tem
+um "disco" permanente para guardar arquivos. Então não dá para
+simplesmente salvar o arquivo no servidor como fazemos em
+hospedagens tradicionais.
+
+As opções eram:
+
+  1. Base64 no banco          → simples, sem configuração extra  ✅ (escolhido)
+  2. Amazon S3 / Google Drive → precisa de conta e configuração extra
+  3. Cloudinary               → precisa de conta e API key extra
+
+Como o projeto é acadêmico e os arquivos são pequenos (laudos,
+receitas médicas), o base64 funciona bem. Por isso colocamos
+um limite de 2MB por arquivo para não deixar o banco de dados
+ficar muito pesado.
+
+
+RESUMO EM UMA LINHA
+====================
+O arquivo é convertido para texto (base64), enviado como campo
+normal do formulário e salvo direto no banco de dados. Na hora
+de exibir, o browser converte de volta automaticamente.

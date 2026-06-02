@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Enums ─────────────────────────────────────────────────────────────────────
+
+enum PerfilUsuario {
+  ALUNO
+  RESPONSAVEL
+  SECRETARIA
+  COORDENACAO
+  DIRECAO
+  ADMIN
+}
+
+enum StatusAtestado {
+  RECEBIDO
+  EM_ANALISE
+  APROVADO
+  RECUSADO
+}
+
+// ── Usuário (herança single-table) ────────────────────────────────────────────
+// Campos extras são nullable — preenchidos conforme o perfil.
+
+model Usuario {
+  id              Int           @id @default(autoincrement())
+  nome            String
+  email           String        @unique
+  senhaHash       String
+  perfil          PerfilUsuario @default(ALUNO)
+  // Aluno
+  matricula       String?       @unique
+  // Responsavel
+  cpf             String?       @unique
+  // Secretaria
+  ramal           String?
+  // Coordenacao
+  departamento    String?
+  // Direcao
+  codigoDiretoria String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  atestados    Atestado[]
+  notificacoes Notificacao[]
+  turmas       Turma[]       @relation("TurmaAlunos")
+  sessoes      Sessao[]
+  apiKeys      ApiKey[]
+}
+
+// ── Sessão (Autenticacao no diagrama) ─────────────────────────────────────────
+
+model Sessao {
+  id            Int      @id @default(autoincrement())
+  idSessao      String   @unique @default(cuid())
+  token         String   @unique
+  dataExpiracao DateTime
+  usuarioId     Int
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  criadaEm      DateTime @default(now())
+}
+
+// ── Curso / Disciplina ────────────────────────────────────────────────────────
+
+model Curso {
+  id     Int     @id @default(autoincrement())
+  nome   String  @unique
+  turmas Turma[]
+}
+
+model Disciplina {
+  id           Int     @id @default(autoincrement())
+  nome         String  @unique
+  cargaHoraria Int
+  turmas       Turma[]
+}
+
+// ── Turma ─────────────────────────────────────────────────────────────────────
+
+model Turma {
+  id           Int        @id @default(autoincrement())
+  codigoTurma  String     @unique
+  cursoId      Int
+  curso        Curso      @relation(fields: [cursoId], references: [id])
+  disciplinaId Int
+  disciplina   Disciplina @relation(fields: [disciplinaId], references: [id])
+  alunos       Usuario[]  @relation("TurmaAlunos")
+  createdAt    DateTime   @default(now())
+}
+
+// ── Cronograma ────────────────────────────────────────────────────────────────
+
+model Cronograma {
+  id                 Int        @id @default(autoincrement())
+  anoLetivo          Int
+  dataInicioSemestre DateTime
+  dataFimSemestre    DateTime
+  periodosAvaliacao  String
+  atestados          Atestado[]
+}
+
+// ── Atestado ──────────────────────────────────────────────────────────────────
+
+model Atestado {
+  id                  Int            @id @default(autoincrement())
+  dataEmissao         DateTime       @default(now())
+  periodo             String
+  motivo              String
+  arquivoAnexo        String?
+  status              StatusAtestado @default(RECEBIDO)
+  justificativaRecusa String?
+  usuarioId           Int
+  usuario             Usuario        @relation(fields: [usuarioId], references: [id])
+  cronogramaId        Int?
+  cronograma          Cronograma?    @relation(fields: [cronogramaId], references: [id])
+  notificacoes        Notificacao[]
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+}
+
+// ── Notificação ───────────────────────────────────────────────────────────────
+
+model Notificacao {
+  id         Int       @id @default(autoincrement())
+  mensagem   String
+  dataEnvio  DateTime  @default(now())
+  tipoStatus String
+  lida       Boolean   @default(false)
+  usuarioId  Int
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id])
+  atestadoId Int?
+  atestado   Atestado? @relation(fields: [atestadoId], references: [id])
+}
+
+// ── Relatório ─────────────────────────────────────────────────────────────────
+
+model Relatorio {
+  id               Int      @id @default(autoincrement())
+  tipoRelatorio    String
+  dataGeracao      DateTime @default(now())
+  parametrosFiltro String?
+  resultado        Json?
+}
+
+// ── API Keys ──────────────────────────────────────────────────────────────────
+// prefix: primeiros chars exibidos ao listar (nunca o key inteiro)
+// keyHash: SHA-256 da key completa (nunca armazenamos em plain text)
+// scopes: ex: ["usuarios:read","atestados:read"] ou ["*"] para acesso total
+
+model ApiKey {
+  id          Int       @id @default(autoincrement())
+  name        String
+  prefix      String
+  keyHash     String    @unique
+  scopes      String[]
+  isActive    Boolean   @default(true)
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  createdById Int
+  createdBy   Usuario   @relation(fields: [createdById], references: [id])
+}
