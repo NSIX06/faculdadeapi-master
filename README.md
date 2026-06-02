@@ -93,6 +93,9 @@ npm install
 cp .env.example .env.local
 
 # 3. Aplicar migrações no banco
+#    Use migrate dev em desenvolvimento (cria histórico de migrations):
+npx prisma migrate dev
+#    Ou db push para sincronizar sem migrations (mais rápido, menos controle):
 npx prisma db push
 
 # 4. (Opcional) Popular dados de exemplo
@@ -120,9 +123,10 @@ A aplicação estará disponível em `http://localhost:3000`.
 
 | Variável | Obrigatória | Descrição |
 |---|---|---|
-| `DATABASE_URL` | Sim | String de conexão PostgreSQL (ex: `postgresql://user:pass@host/db`) |
-| `JWT_SECRET` | Sim | Segredo para assinar tokens JWT (mínimo 32 caracteres) |
-| `NEXT_PUBLIC_API_BASE_URL` | Sim | URL base para chamadas da API no frontend (ex: `/proxy` ou `http://localhost:3000`) |
+| `DATABASE_URL` | Sim | String de conexão PostgreSQL — use o **pooler** do Neon em produção (ex: `postgresql://user:pass@host-pooler.regiao.aws.neon.tech/db?sslmode=require`) |
+| `DIRECT_URL` | Sim (Migrations) | Conexão **direta** ao banco, usada pelo `prisma migrate`. Use o host sem pooler (ex: `postgresql://user:pass@host.regiao.aws.neon.tech/db?sslmode=require`) |
+| `JWT_SECRET` | Sim | Segredo para assinar tokens JWT (mínimo 32 caracteres). Gere com: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
+| `NEXT_PUBLIC_API_BASE_URL` | Não | URL base para chamadas da API no frontend. Se omitida, padrão é `/api` (mesmo domínio). Em dev local, use `/proxy`. |
 | `NEXT_PUBLIC_API_KEY` | Sim | API key com escopo `*` usada pelo frontend |
 
 > **Nota sobre o proxy:** O `next.config.ts` define um rewrite `/proxy/:path*` → `https://faculdadeapi.vercel.app/api/:path*`. Em desenvolvimento local usando a API embutida, defina `NEXT_PUBLIC_API_BASE_URL=` (vazio) ou o endereço direto.
@@ -142,6 +146,24 @@ A aplicação estará disponível em `http://localhost:3000`.
 ---
 
 ## 6. Arquitetura do Projeto
+
+### Fluxo de uma requisição
+
+```
+Cliente (frontend / Postman / integração)
+        │
+        │  Authorization: Bearer <jwt>   (usuários do sistema)
+        │  X-Api-Key: <chave>            (integrações externas)
+        ▼
+  Route Handlers  (app/api/*)
+        │
+        │  getAuth() → valida JWT ou API Key
+        │  requireScope() / requireAdmin()
+        ▼
+  Prisma Client (singleton) ──► Neon PostgreSQL (serverless)
+```
+
+### Estrutura de pastas
 
 ```
 faculdadeapi-master/
@@ -765,9 +787,14 @@ Rota: `/admin` — acessível apenas com JWT de `ADMIN` ou `DIRECAO`.
 ## 16. Deploy no Vercel
 
 1. Conecte o repositório ao Vercel
-2. Em **Settings → Environment Variables**, adicione `DATABASE_URL`, `JWT_SECRET`, `NEXT_PUBLIC_API_BASE_URL` e `NEXT_PUBLIC_API_KEY`
+2. Em **Settings → Environment Variables**, adicione:
+   - `DATABASE_URL` — connection string do Neon (pooler)
+   - `DIRECT_URL` — connection string direta (sem pooler)
+   - `JWT_SECRET` — segredo JWT
+   - `NEXT_PUBLIC_API_KEY` — API key com escopo `*`
+   - `NEXT_PUBLIC_API_BASE_URL` **não precisa ser definida** — o padrão `/api` funciona no mesmo domínio
 3. O build já executa `prisma generate` automaticamente (script `postinstall`)
-4. Faça o deploy
+4. Faça o deploy 🚀
 
 > Em mudanças de schema, rode `npx prisma migrate deploy` antes do deploy.
 

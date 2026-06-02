@@ -56,11 +56,11 @@ export default function LoginPage() {
       </div>
 
       {/* Right form half */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
+      <div className="flex-1 flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-950">
         <div className="w-full max-w-sm">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 font-display">Bem-vindo de volta</h2>
-            <p className="text-sm text-gray-500 mt-1">Entre com suas credenciais para continuar.</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 font-display">Bem-vindo de volta</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Entre com suas credenciais para continuar.</p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -74,7 +74,7 @@ export default function LoginPage() {
                 <input id="senha" type={showPwd ? 'text' : 'password'} className="input-field pr-10"
                   placeholder="••••••••" value={senha} onChange={e => setSenha(e.target.value)} required />
                 <button type="button" onClick={() => setShowPwd(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                   {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -83,8 +83,8 @@ export default function LoginPage() {
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
-          <div className="mt-6 p-3 bg-gray-100 rounded-xl text-xs text-gray-500">
-            <p className="font-medium text-gray-700 mb-1">Credenciais de teste:</p>
+          <div className="mt-6 p-3 bg-gray-100 dark:bg-gray-800 rounded-xl text-xs text-gray-500 dark:text-gray-400">
+            <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">Credenciais de teste:</p>
             <p>admin@escola.edu.br</p>
             <p>Admin@123</p>
           </div>

@@ -30,7 +30,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   if (!isAuthenticated) return null
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
       {/* Desktop sidebar */}
       <div className="hidden lg:flex flex-col flex-shrink-0">
         <Sidebar />
@@ -48,11 +48,11 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="lg:hidden flex items-center gap-4 px-4 py-3 bg-white border-b border-gray-100">
+        <header className="lg:hidden flex items-center gap-4 px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
           <button onClick={() => setSidebarOpen(v => !v)} className="btn-ghost p-1">
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
-          <span className="text-sm font-semibold text-gray-900 font-display">Atestado Escolar</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 font-display">Atestado Escolar</span>
         </header>
         <main className="flex-1 overflow-y-auto p-6">
           {children}
