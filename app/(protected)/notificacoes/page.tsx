@@ -58,12 +58,12 @@ export default function NotificacoesPage() {
       />
 
       <div className="flex items-center gap-2 mb-5">
-        <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-600">
+        <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-600 dark:text-gray-400">
           <div
             onClick={() => { setNaoLidas(v => !v); setTimeout(refetch, 0) }}
             className={clsx(
               'w-10 h-5 rounded-full transition-colors cursor-pointer relative',
-              naoLidas ? 'bg-brand-500' : 'bg-gray-200',
+              naoLidas ? 'bg-brand-500' : 'bg-gray-200 dark:bg-gray-700',
             )}
           >
             <span className={clsx(
@@ -86,22 +86,22 @@ export default function NotificacoesPage() {
                   className={clsx(
                     'flex items-start gap-3 p-4 rounded-2xl border transition-all',
                     !n.lida
-                      ? 'border-brand-200 bg-brand-50 border-l-4 border-l-brand-500'
-                      : 'border-gray-100 bg-white opacity-60',
+                      ? 'border-brand-200 bg-brand-50 border-l-4 border-l-brand-500 dark:bg-brand-950/30 dark:border-brand-800 dark:border-l-brand-500'
+                      : 'border-gray-100 bg-white opacity-70 dark:border-gray-800 dark:bg-gray-900',
                   )}
                 >
-                  <Bell size={16} className={n.lida ? 'text-gray-300 mt-0.5' : 'text-brand-500 mt-0.5'} />
+                  <Bell size={16} className={n.lida ? 'text-gray-400 dark:text-gray-600 mt-0.5' : 'text-brand-500 mt-0.5'} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-800">{n.mensagem}</p>
+                    <p className="text-sm text-gray-800 dark:text-gray-200">{n.mensagem}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
                         {new Date(n.dataEnvio).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' })}
                       </span>
-                      <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded">{n.tipoStatus}</span>
+                      <span className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded">{n.tipoStatus}</span>
                     </div>
                   </div>
                   {!n.lida && (
-                    <button className="btn-ghost p-1 text-brand-600 flex-shrink-0" onClick={() => handleRead(n.id)}>
+                    <button className="btn-ghost p-1 text-brand-600 dark:text-brand-400 flex-shrink-0" onClick={() => handleRead(n.id)}>
                       <Check size={15} />
                     </button>
                   )}

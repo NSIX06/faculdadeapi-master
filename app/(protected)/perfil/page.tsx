@@ -56,15 +56,15 @@ export default function PerfilPage() {
           {user.nome.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
         </div>
         <div>
-          <p className="text-lg font-bold text-gray-900 font-display">{user.nome}</p>
-          <p className="text-sm text-gray-500">{user.email}</p>
+          <p className="text-lg font-bold text-gray-900 dark:text-gray-100 font-display">{user.nome}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
           <div className="mt-1"><PerfilBadge perfil={user.perfil} /></div>
         </div>
       </div>
 
       {/* Editable fields */}
       <div className="card mb-5">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">Informações Editáveis</h2>
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Informações Editáveis</h2>
         <div className="space-y-4">
           <div>
             <label className="label flex items-center gap-1.5">
@@ -99,25 +99,25 @@ export default function PerfilPage() {
 
       {/* Read-only info */}
       <div className="card">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">Informações da Conta</h2>
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Informações da Conta</h2>
         <div className="space-y-3">
           {fields.map(({ icon: Icon, label, value, badge }) => (
-            <div key={label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Icon size={14} className="text-gray-400" />
+            <div key={label} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <Icon size={14} className="text-gray-400 dark:text-gray-500" />
                 {label}
               </div>
               {badge
                 ? <PerfilBadge perfil={value as import('@/types').Perfil} />
-                : <span className="text-sm font-medium text-gray-800">{value}</span>
+                : <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{value}</span>
               }
             </div>
           ))}
           <div className="flex items-center justify-between py-2">
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Hash size={14} className="text-gray-400" /> Cadastro
+            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+              <Hash size={14} className="text-gray-400 dark:text-gray-500" /> Cadastro
             </div>
-            <span className="text-sm font-medium text-gray-800">
+            <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
               {new Date(user.createdAt).toLocaleDateString('pt-BR', { dateStyle: 'long' })}
             </span>
           </div>

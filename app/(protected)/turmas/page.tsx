@@ -85,18 +85,18 @@ export default function TurmasPage() {
               {(data ?? []).map(t => (
                 <div key={t.id} className="card animate-fade-in flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 bg-brand-100 text-brand-700 text-xs font-bold rounded-lg">
+                    <span className="px-2 py-0.5 bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 text-xs font-bold rounded-lg">
                       {t.codigoTurma}
                     </span>
-                    <span className="text-xs text-gray-400">{t.alunos.length} alunos</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">{t.alunos.length} alunos</span>
                   </div>
-                  <p className="text-sm font-medium text-gray-800">{t.curso.nome}</p>
-                  <p className="text-xs text-gray-500">{t.disciplina.nome}</p>
-                  <div className="flex gap-2 mt-auto pt-2 border-t border-gray-50">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{t.curso.nome}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t.disciplina.nome}</p>
+                  <div className="flex gap-2 mt-auto pt-2 border-t border-gray-100 dark:border-gray-800">
                     <button className="btn-ghost text-xs px-2 py-1" onClick={() => setManageTurma(t)}>
                       <Settings size={14} /> Gerenciar
                     </button>
-                    <button className="btn-ghost text-xs px-2 py-1 text-red-500" onClick={() => handleDelete(t)}>
+                    <button className="btn-ghost text-xs px-2 py-1 text-red-500 dark:text-red-400" onClick={() => handleDelete(t)}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -139,11 +139,17 @@ export default function TurmasPage() {
         {manageTurma && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><p className="text-xs text-gray-400">Curso</p><p className="font-medium">{manageTurma.curso.nome}</p></div>
-              <div><p className="text-xs text-gray-400">Disciplina</p><p className="font-medium">{manageTurma.disciplina.nome}</p></div>
+              <div>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Curso</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{manageTurma.curso.nome}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Disciplina</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{manageTurma.disciplina.nome}</p>
+              </div>
             </div>
-            <div className="border-t border-gray-100 pt-3">
-              <p className="text-sm font-semibold text-gray-700 mb-2">Vincular aluno</p>
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-3">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Vincular aluno</p>
               <div className="flex gap-2">
                 <select className="select-field flex-1" value={addAlunoId || ''} onChange={e => setAddAlunoId(Number(e.target.value))}>
                   <option value="">Selecione aluno...</option>
@@ -155,15 +161,15 @@ export default function TurmasPage() {
               </div>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-700 mb-2">Alunos vinculados ({manageTurma.alunos.length})</p>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Alunos vinculados ({manageTurma.alunos.length})</p>
               {manageTurma.alunos.length === 0
-                ? <p className="text-sm text-gray-400">Nenhum aluno vinculado.</p>
+                ? <p className="text-sm text-gray-400 dark:text-gray-500">Nenhum aluno vinculado.</p>
                 : (
                   <div className="space-y-1 max-h-48 overflow-y-auto">
                     {manageTurma.alunos.map(a => (
-                      <div key={a.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-xl">
-                        <span className="text-sm">{a.nome}</span>
-                        <button className="btn-ghost p-1 text-red-500" onClick={() => handleDisconnect(manageTurma.id, a.id)}>
+                      <div key={a.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                        <span className="text-sm text-gray-800 dark:text-gray-200">{a.nome}</span>
+                        <button className="btn-ghost p-1 text-red-500 dark:text-red-400" onClick={() => handleDisconnect(manageTurma.id, a.id)}>
                           <UserMinus size={14} />
                         </button>
                       </div>

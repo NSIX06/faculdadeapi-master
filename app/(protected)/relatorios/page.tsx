@@ -48,19 +48,19 @@ export default function RelatoriosPage() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {(data ?? []).map(r => (
                 <div key={r.id} className="card animate-fade-in flex flex-col gap-3">
-                  <div className="w-9 h-9 bg-brand-50 rounded-xl flex items-center justify-center">
+                  <div className="w-9 h-9 bg-brand-50 dark:bg-brand-950/50 rounded-xl flex items-center justify-center">
                     {r.tipoRelatorio === 'faltas_por_aluno'
-                      ? <Users size={18} className="text-brand-600" />
-                      : <BarChart2 size={18} className="text-brand-600" />}
+                      ? <Users size={18} className="text-brand-600 dark:text-brand-400" />
+                      : <BarChart2 size={18} className="text-brand-600 dark:text-brand-400" />}
                   </div>
-                  <p className="text-sm font-semibold text-gray-800">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                     {TIPO_LABELS[r.tipoRelatorio as TipoRelatorio] ?? r.tipoRelatorio}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
                     {new Date(r.dataGeracao).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' })}
                   </p>
                   {r.parametrosFiltro && (
-                    <p className="text-xs text-gray-500 bg-gray-50 rounded-lg px-2 py-1 font-mono">{r.parametrosFiltro}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-2 py-1 font-mono">{r.parametrosFiltro}</p>
                   )}
                   {r.resultado !== null && r.resultado !== undefined && (
                     <pre className="text-xs bg-gray-900 text-green-400 rounded-xl p-3 overflow-auto max-h-40 font-mono">

@@ -36,10 +36,10 @@ export default function DashboardPage() {
   ).slice(0, 5)
 
   const stats = [
-    { label: 'Atestados',    value: total,                     icon: FileText,   href: '/atestados',    color: 'text-blue-500',   bg: 'bg-blue-50' },
-    { label: 'Usuários',     value: usuariosList?.length ?? 0, icon: Users,      href: '/usuarios',     color: 'text-purple-500', bg: 'bg-purple-50' },
-    { label: 'Turmas',       value: turmasList?.length ?? 0,   icon: BookMarked, href: '/turmas',       color: 'text-brand-500',  bg: 'bg-brand-50' },
-    { label: 'Notificações', value: naoLidas,                  icon: Bell,       href: '/notificacoes', color: 'text-amber-500',  bg: 'bg-amber-50' },
+    { label: 'Atestados',    value: total,                     icon: FileText,   href: '/atestados',    color: 'text-blue-500',   bg: 'bg-blue-50 dark:bg-blue-950/50' },
+    { label: 'Usuários',     value: usuariosList?.length ?? 0, icon: Users,      href: '/usuarios',     color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/50' },
+    { label: 'Turmas',       value: turmasList?.length ?? 0,   icon: BookMarked, href: '/turmas',       color: 'text-brand-500',  bg: 'bg-brand-50 dark:bg-brand-950/50' },
+    { label: 'Notificações', value: naoLidas,                  icon: Bell,       href: '/notificacoes', color: 'text-amber-500',  bg: 'bg-amber-50 dark:bg-amber-950/50' },
   ]
 
   if (loadingA) return <Loading />
@@ -47,10 +47,10 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 font-display">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 font-display">
           {user ? greeting(user.nome) : 'Bem-vindo!'}
         </h1>
-        <p className="text-sm text-gray-500 mt-0.5">Confira o status das suas solicitações acadêmicas hoje.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Confira o status das suas solicitações acadêmicas hoje.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -59,24 +59,24 @@ export default function DashboardPage() {
             <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center mb-3`}>
               <Icon size={20} className={color} />
             </div>
-            <p className="text-2xl font-bold text-gray-900 font-display">{value}</p>
-            <p className="text-sm text-gray-500 mt-0.5">{label}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 font-display">{value}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{label}</p>
           </Link>
         ))}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4">
         <div className="card lg:col-span-2">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Atestados Recentes</h2>
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Atestados Recentes</h2>
           {recentes.length === 0 ? (
-            <p className="text-sm text-gray-400">Nenhum atestado encontrado.</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">Nenhum atestado encontrado.</p>
           ) : (
             <div className="space-y-3">
               {recentes.map(a => (
-                <div key={a.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                <div key={a.id} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
                   <div>
-                    <p className="text-sm font-medium text-gray-800">{a.motivo}</p>
-                    <p className="text-xs text-gray-400">{a.periodo}</p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{a.motivo}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{a.periodo}</p>
                   </div>
                   <StatusBadge status={a.status} />
                 </div>
@@ -85,18 +85,18 @@ export default function DashboardPage() {
           )}
         </div>
         <div className="card">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Por Status</h2>
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Por Status</h2>
           <div className="space-y-3">
             {STATUS_LIST.map(s => {
               const count = atestadosList?.filter(a => a.status === s).length ?? 0
               const pct   = total > 0 ? Math.round((count / total) * 100) : 0
               return (
                 <div key={s}>
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                  <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
                     <span>{STATUS_LABELS[s]}</span>
                     <span>{count} ({pct}%)</span>
                   </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                     <div className={`h-full rounded-full ${STATUS_COLORS[s]} transition-all duration-500`} style={{ width: `${pct}%` }} />
                   </div>
                 </div>

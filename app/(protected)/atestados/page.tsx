@@ -39,18 +39,14 @@ function FilePicker({
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-
     const sizeMB = file.size / 1024 / 1024
     if (sizeMB > MAX_SIZE_MB) {
       toast.error(`Arquivo muito grande. Máximo ${MAX_SIZE_MB}MB.`)
       e.target.value = ''
       return
     }
-
     const reader = new FileReader()
-    reader.onload = () => {
-      onChange(reader.result as string, file.name)
-    }
+    reader.onload = () => { onChange(reader.result as string, file.name) }
     reader.readAsDataURL(file)
     e.target.value = ''
   }
@@ -59,19 +55,13 @@ function FilePicker({
 
   return (
     <div
-      className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-brand-400 hover:bg-brand-50/50 transition-colors"
+      className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-6 text-center cursor-pointer hover:border-brand-400 hover:bg-brand-50/50 dark:hover:bg-brand-950/20 transition-colors"
       onClick={() => inputRef.current?.click()}
     >
       <Paperclip size={20} className="mx-auto mb-2 text-gray-400" />
-      <p className="text-sm text-gray-600">Clique para selecionar um arquivo</p>
-      <p className="text-xs text-gray-400 mt-1">PDF, JPG ou PNG — máx. {MAX_SIZE_MB}MB</p>
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".pdf,.jpg,.jpeg,.png"
-        className="hidden"
-        onChange={handleFile}
-      />
+      <p className="text-sm text-gray-600 dark:text-gray-400">Clique para selecionar um arquivo</p>
+      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">PDF, JPG ou PNG — máx. {MAX_SIZE_MB}MB</p>
+      <input ref={inputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={handleFile} />
     </div>
   )
 }
@@ -79,12 +69,12 @@ function FilePicker({
 function FilePreview({ value, name, onClear }: { value: string; name: string; onClear: () => void }) {
   const isPdf = value.startsWith('data:application/pdf')
   return (
-    <div className="rounded-xl border border-gray-100 overflow-hidden">
+    <div className="rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
       {isPdf ? (
-        <div className="flex items-center gap-3 px-4 py-3 bg-gray-50">
+        <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800">
           <FileText size={18} className="text-red-500 flex-shrink-0" />
-          <span className="text-sm text-gray-700 flex-1 truncate">{name}</span>
-          <a href={value} target="_blank" rel="noreferrer" className="text-xs text-brand-600 underline flex-shrink-0">Abrir</a>
+          <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 truncate">{name}</span>
+          <a href={value} target="_blank" rel="noreferrer" className="text-xs text-brand-600 dark:text-brand-400 underline flex-shrink-0">Abrir</a>
           <button onClick={onClear} className="p-1 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
             <X size={14} />
           </button>
@@ -92,14 +82,14 @@ function FilePreview({ value, name, onClear }: { value: string; name: string; on
       ) : (
         <div className="relative group">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={value} alt={name} className="w-full max-h-40 object-contain bg-gray-50" />
+          <img src={value} alt={name} className="w-full max-h-40 object-contain bg-gray-50 dark:bg-gray-800" />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
             <a href={value} target="_blank" rel="noreferrer" className="bg-white text-gray-800 text-xs px-3 py-1.5 rounded-lg font-medium">Ver</a>
             <button onClick={onClear} className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium">Remover</button>
           </div>
-          <div className="flex items-center gap-2 px-3 py-2 bg-white border-t border-gray-100">
+          <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
             <ImageIcon size={13} className="text-brand-500 flex-shrink-0" />
-            <span className="text-xs text-gray-500 truncate">{name}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{name}</span>
           </div>
         </div>
       )}
@@ -115,11 +105,11 @@ function AnexoViewer({ url }: { url: string }) {
   if (isPdf) {
     return (
       <div>
-        <p className="text-xs text-gray-400 mb-1">Anexo</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Anexo</p>
         {isData ? (
-          <iframe src={url} className="w-full h-64 rounded-xl border border-gray-100" />
+          <iframe src={url} className="w-full h-64 rounded-xl border border-gray-100 dark:border-gray-700" />
         ) : (
-          <a href={url} target="_blank" rel="noreferrer" className="text-brand-600 text-sm underline">Abrir PDF</a>
+          <a href={url} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-400 text-sm underline">Abrir PDF</a>
         )}
       </div>
     )
@@ -128,18 +118,18 @@ function AnexoViewer({ url }: { url: string }) {
   if (isImg) {
     return (
       <div>
-        <p className="text-xs text-gray-400 mb-1">Anexo</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Anexo</p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={url} alt="Atestado" className="max-h-48 rounded-xl border border-gray-100 object-contain bg-gray-50 w-full" />
-        <a href={url} target="_blank" rel="noreferrer" className="text-xs text-brand-600 underline mt-1 block">Abrir em nova aba</a>
+        <img src={url} alt="Atestado" className="max-h-48 rounded-xl border border-gray-100 dark:border-gray-700 object-contain bg-gray-50 dark:bg-gray-800 w-full" />
+        <a href={url} target="_blank" rel="noreferrer" className="text-xs text-brand-600 dark:text-brand-400 underline mt-1 block">Abrir em nova aba</a>
       </div>
     )
   }
 
   return (
     <div>
-      <p className="text-xs text-gray-400 mb-1">Anexo</p>
-      <a href={url} target="_blank" rel="noreferrer" className="text-brand-600 text-sm underline">Ver documento</a>
+      <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Anexo</p>
+      <a href={url} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-400 text-sm underline">Ver documento</a>
     </div>
   )
 }
@@ -251,32 +241,32 @@ export default function AtestadosPage() {
                 <div key={a.id} className="card animate-fade-in flex flex-col gap-3">
                   <div className="flex items-start justify-between">
                     <StatusBadge status={a.status} />
-                    <span className="text-xs text-gray-400">#{a.id}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">#{a.id}</span>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-800">{a.motivo}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{a.periodo}</p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{a.motivo}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{a.periodo}</p>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                    <User size={12} className="text-gray-400" />
+                  <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    <User size={12} className="text-gray-400 dark:text-gray-500" />
                     <span>{a.usuario?.nome ?? alunoNome(a.usuarioId)}</span>
                   </div>
                   {a.arquivoAnexo && (
-                    <div className="flex items-center gap-1.5 text-xs text-brand-600">
+                    <div className="flex items-center gap-1.5 text-xs text-brand-600 dark:text-brand-400">
                       <Paperclip size={12} />
                       <span>Anexo incluído</span>
                     </div>
                   )}
                   {a.justificativaRecusa && (
-                    <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">
+                    <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-lg px-3 py-2">
                       {a.justificativaRecusa}
                     </p>
                   )}
-                  <div className="flex gap-2 mt-auto pt-2 border-t border-gray-50">
+                  <div className="flex gap-2 mt-auto pt-2 border-t border-gray-100 dark:border-gray-800">
                     <button className="btn-ghost text-xs px-2 py-1" onClick={() => { setDetailItem(a); setStatusForm({ status: a.status }) }}>
                       <Eye size={14} /> Detalhes
                     </button>
-                    <button className="btn-ghost text-xs px-2 py-1 text-red-500" onClick={() => handleDelete(a)}>
+                    <button className="btn-ghost text-xs px-2 py-1 text-red-500 dark:text-red-400" onClick={() => handleDelete(a)}>
                       <Trash2 size={14} /> Excluir
                     </button>
                   </div>
@@ -304,8 +294,6 @@ export default function AtestadosPage() {
             <label className="label">Motivo</label>
             <textarea className="input-field min-h-[80px] resize-none" value={form.motivo} onChange={e => setForm(f => ({ ...f, motivo: e.target.value }))} />
           </div>
-
-          {/* File upload */}
           <div>
             <label className="label flex items-center gap-1.5">
               <Paperclip size={13} className="text-gray-400" /> Arquivo do Atestado
@@ -324,7 +312,6 @@ export default function AtestadosPage() {
               />
             )}
           </div>
-
           <div className="flex justify-end gap-2 pt-1">
             <button className="btn-secondary" onClick={resetCreate}>Cancelar</button>
             <button className="btn-primary" onClick={handleCreate}>Enviar Atestado</button>
@@ -337,26 +324,39 @@ export default function AtestadosPage() {
         {detailItem && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><p className="text-xs text-gray-400">Aluno</p><p className="font-medium">{detailItem.usuario?.nome ?? alunoNome(detailItem.usuarioId)}</p></div>
-              <div><p className="text-xs text-gray-400">Status</p><StatusBadge status={detailItem.status} /></div>
-              <div><p className="text-xs text-gray-400">Motivo</p><p className="font-medium">{detailItem.motivo}</p></div>
-              <div><p className="text-xs text-gray-400">Período</p><p className="font-medium">{detailItem.periodo}</p></div>
-              <div><p className="text-xs text-gray-400">Emissão</p><p className="font-medium">{new Date(detailItem.dataEmissao).toLocaleDateString('pt-BR')}</p></div>
+              <div>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Aluno</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{detailItem.usuario?.nome ?? alunoNome(detailItem.usuarioId)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Status</p>
+                <StatusBadge status={detailItem.status} />
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Motivo</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{detailItem.motivo}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Período</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{detailItem.periodo}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Emissão</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{new Date(detailItem.dataEmissao).toLocaleDateString('pt-BR')}</p>
+              </div>
             </div>
 
-            {detailItem.arquivoAnexo && (
-              <AnexoViewer url={detailItem.arquivoAnexo} />
-            )}
+            {detailItem.arquivoAnexo && <AnexoViewer url={detailItem.arquivoAnexo} />}
 
             {detailItem.justificativaRecusa && (
-              <div className="bg-red-50 rounded-xl px-4 py-3">
+              <div className="bg-red-50 dark:bg-red-950/30 rounded-xl px-4 py-3">
                 <p className="text-xs text-red-500 font-medium mb-0.5">Justificativa de Recusa</p>
-                <p className="text-sm text-red-700">{detailItem.justificativaRecusa}</p>
+                <p className="text-sm text-red-700 dark:text-red-300">{detailItem.justificativaRecusa}</p>
               </div>
             )}
 
-            <div className="border-t border-gray-100 pt-4">
-              <p className="text-sm font-semibold text-gray-700 mb-3">Atualizar Status</p>
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Atualizar Status</p>
               <div className="space-y-3">
                 <select
                   className="select-field"

@@ -20,13 +20,11 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(path: string, options: RequestInit = {}, skipApiKey = false): Promise<T> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('jwt_token') : null
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'X-Api-Key': API_KEY ?? '',
-  }
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (!skipApiKey && API_KEY) headers['X-Api-Key'] = API_KEY
   if (token) headers['Authorization'] = `Bearer ${token}`
 
   let res: Response
@@ -58,7 +56,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export const auth = {
   login: (data: LoginRequest) =>
-    request<LoginResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+    request<LoginResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }, true),
 }
 
 // ── Usuários ──────────────────────────────────────────────────────────────────
