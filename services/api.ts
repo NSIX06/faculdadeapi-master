@@ -10,10 +10,8 @@ import type {
   Disciplina, CreateDisciplinaRequest,
 } from '@/types'
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string
-const API_KEY  = process.env.NEXT_PUBLIC_API_KEY as string
-
-if (!BASE_URL) throw new Error('NEXT_PUBLIC_API_BASE_URL is not set')
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? '/api'
+const API_KEY  = process.env.NEXT_PUBLIC_API_KEY ?? ''
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
