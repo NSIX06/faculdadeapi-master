@@ -180,7 +180,6 @@ export default function AtestadosPage() {
   }
 
   async function handleDelete(a: Atestado) {
-    if (!confirm('Remover este atestado?')) return
     try {
       await svc.delete(a.id)
       toast.success('Atestado removido.')

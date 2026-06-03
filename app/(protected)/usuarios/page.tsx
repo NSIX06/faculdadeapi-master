@@ -51,7 +51,6 @@ export default function UsuariosPage() {
   }
 
   async function handleDelete(u: Usuario) {
-    if (!confirm(`Remover ${u.nome}?`)) return
     try {
       await svc.delete(u.id)
       toast.success('Usuário removido.')

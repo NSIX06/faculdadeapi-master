@@ -31,7 +31,6 @@ export default function TurmasPage() {
   }
 
   async function handleDelete(t: Turma) {
-    if (!confirm(`Remover turma ${t.codigoTurma}?`)) return
     try {
       await svc.delete(t.id)
       toast.success('Turma removida.')
