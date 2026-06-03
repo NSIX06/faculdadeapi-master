@@ -2,22 +2,28 @@
 
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { Sidebar } from '@/components/Sidebar'
 import { useAuth } from '@/contexts/AuthContext'
 import { Loading } from '@/components/ui'
+import { canAccessPage } from '@/lib/permissions'
 import type { ReactNode } from 'react'
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, user } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace('/login')
+      return
     }
-  }, [isAuthenticated, isLoading, router])
+    if (!isLoading && isAuthenticated && user && !canAccessPage(user.perfil, pathname)) {
+      router.replace('/dashboard')
+    }
+  }, [isAuthenticated, isLoading, user, pathname, router])
 
   if (isLoading) {
     return (

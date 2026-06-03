@@ -4,11 +4,16 @@ import { useState } from 'react'
 import { Plus, BarChart2, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useApi } from '@/hooks/useApi'
+import { useAuth } from '@/contexts/AuthContext'
 import { relatorios as svc, usuarios } from '@/services/api'
 import { Modal, PageHeader, Loading, EmptyState } from '@/components/ui'
 import type { GenerateRelatorioRequest, TipoRelatorio } from '@/types'
+import { can } from '@/lib/permissions'
 
 export default function RelatoriosPage() {
+  const { user } = useAuth()
+  const canGenerate = can(user?.perfil, 'relatorios.generate')
+
   const { data, isLoading, refetch } = useApi(() => svc.list())
   const { data: userList }           = useApi(() => usuarios.list())
   const [open, setOpen] = useState(false)
@@ -34,11 +39,11 @@ export default function RelatoriosPage() {
       <PageHeader
         title="Relatórios"
         subtitle="Gere e consulte relatórios acadêmicos."
-        action={
+        action={canGenerate ? (
           <button className="btn-primary" onClick={() => setOpen(true)}>
             <Plus size={16} /> Gerar Relatório
           </button>
-        }
+        ) : undefined}
       />
 
       {isLoading ? <Loading /> : (

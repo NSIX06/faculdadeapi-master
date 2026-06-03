@@ -4,14 +4,22 @@ import { useState, useMemo } from 'react'
 import { Plus, Pencil, Trash2, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useApi } from '@/hooks/useApi'
+import { useAuth } from '@/contexts/AuthContext'
 import { usuarios as svc } from '@/services/api'
 import { Modal, DataTable, PageHeader, PerfilBadge, Loading } from '@/components/ui'
 import type { Column } from '@/components/ui'
 import type { Usuario, Perfil, CreateUsuarioRequest, UpdateUsuarioRequest } from '@/types'
+import { can } from '@/lib/permissions'
 
 const PERFIS: Perfil[] = ['ALUNO','RESPONSAVEL','SECRETARIA','COORDENACAO','DIRECAO','ADMIN']
 
 export default function UsuariosPage() {
+  const { user } = useAuth()
+  const perfil = user?.perfil
+  const canCreate = can(perfil, 'usuarios.create')
+  const canUpdate = can(perfil, 'usuarios.update')
+  const canDelete = can(perfil, 'usuarios.delete')
+
   const { data, isLoading, refetch } = useApi(() => svc.list())
   const [search, setSearch]       = useState('')
   const [perfilFilter, setPerfilFilter] = useState<Perfil | ''>('')
@@ -66,12 +74,16 @@ export default function UsuariosPage() {
     { key:'matricula',header:'Matrícula',render: u => u.matricula ?? '—' },
     { key:'acoes',    header:'Ações',    render: u => (
       <div className="flex items-center gap-2">
-        <button className="btn-ghost p-1" onClick={() => { setEditUser(u); setEditForm({ nome: u.nome, email: u.email }) }}>
-          <Pencil size={15} />
-        </button>
-        <button className="btn-ghost p-1 text-red-500 hover:bg-red-50" onClick={() => handleDelete(u)}>
-          <Trash2 size={15} />
-        </button>
+        {canUpdate && (
+          <button className="btn-ghost p-1" onClick={() => { setEditUser(u); setEditForm({ nome: u.nome, email: u.email }) }}>
+            <Pencil size={15} />
+          </button>
+        )}
+        {canDelete && (
+          <button className="btn-ghost p-1 text-red-500 hover:bg-red-50" onClick={() => handleDelete(u)}>
+            <Trash2 size={15} />
+          </button>
+        )}
       </div>
     )},
   ]
@@ -79,7 +91,7 @@ export default function UsuariosPage() {
   return (
     <div className="max-w-5xl mx-auto">
       <PageHeader title="Usuários" subtitle="Gerencie os usuários do sistema."
-        action={<button className="btn-primary" onClick={() => setCreateOpen(true)}><Plus size={16} /> Novo Usuário</button>} />
+        action={canCreate ? <button className="btn-primary" onClick={() => setCreateOpen(true)}><Plus size={16} /> Novo Usuário</button> : undefined} />
 
       {/* Search + filter */}
       <div className="flex flex-wrap items-center gap-2 mb-4">

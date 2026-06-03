@@ -4,11 +4,16 @@ import { useState } from 'react'
 import { Plus, Settings, Trash2, UserPlus, UserMinus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useApi } from '@/hooks/useApi'
+import { useAuth } from '@/contexts/AuthContext'
 import { turmas as svc, cursos, disciplinas, usuarios } from '@/services/api'
 import { Modal, PageHeader, Loading, EmptyState } from '@/components/ui'
 import type { Turma, CreateTurmaRequest } from '@/types'
+import { can } from '@/lib/permissions'
 
 export default function TurmasPage() {
+  const { user } = useAuth()
+  const canManage = can(user?.perfil, 'turmas.manage')
+
   const { data, isLoading, refetch }  = useApi(() => svc.list())
   const { data: cursoList }           = useApi(() => cursos.list())
   const { data: discList }            = useApi(() => disciplinas.list())
@@ -69,11 +74,11 @@ export default function TurmasPage() {
       <PageHeader
         title="Turmas"
         subtitle="Gerencie turmas e vínculos de alunos."
-        action={
+        action={canManage ? (
           <button className="btn-primary" onClick={() => setCreateOpen(true)}>
             <Plus size={16} /> Nova Turma
           </button>
-        }
+        ) : undefined}
       />
 
       {isLoading ? <Loading /> : (
@@ -91,14 +96,16 @@ export default function TurmasPage() {
                   </div>
                   <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{t.curso.nome}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{t.disciplina.nome}</p>
-                  <div className="flex gap-2 mt-auto pt-2 border-t border-gray-100 dark:border-gray-800">
-                    <button className="btn-ghost text-xs px-2 py-1" onClick={() => setManageTurma(t)}>
-                      <Settings size={14} /> Gerenciar
-                    </button>
-                    <button className="btn-ghost text-xs px-2 py-1 text-red-500 dark:text-red-400" onClick={() => handleDelete(t)}>
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                  {canManage && (
+                    <div className="flex gap-2 mt-auto pt-2 border-t border-gray-100 dark:border-gray-800">
+                      <button className="btn-ghost text-xs px-2 py-1" onClick={() => setManageTurma(t)}>
+                        <Settings size={14} /> Gerenciar
+                      </button>
+                      <button className="btn-ghost text-xs px-2 py-1 text-red-500 dark:text-red-400" onClick={() => handleDelete(t)}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

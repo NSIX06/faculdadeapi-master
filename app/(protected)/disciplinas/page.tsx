@@ -4,12 +4,17 @@ import { useState, useMemo } from 'react'
 import { Plus, BookOpen, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useApi } from '@/hooks/useApi'
+import { useAuth } from '@/contexts/AuthContext'
 import { disciplinas as svc } from '@/services/api'
 import { Modal, DataTable, PageHeader, Loading } from '@/components/ui'
 import type { Column } from '@/components/ui'
 import type { Disciplina } from '@/types'
+import { can } from '@/lib/permissions'
 
 export default function DisciplinasPage() {
+  const { user } = useAuth()
+  const canCreate = can(user?.perfil, 'disciplinas.create')
+
   const { data, isLoading, refetch } = useApi(() => svc.list())
   const [search, setSearch]  = useState('')
   const [open, setOpen]      = useState(false)
@@ -52,11 +57,11 @@ export default function DisciplinasPage() {
       <PageHeader
         title="Disciplinas"
         subtitle="Gerencie as disciplinas da instituição."
-        action={
+        action={canCreate ? (
           <button className="btn-primary" onClick={() => setOpen(true)}>
             <Plus size={16} /> Nova Disciplina
           </button>
-        }
+        ) : undefined}
       />
 
       <div className="relative mb-4">

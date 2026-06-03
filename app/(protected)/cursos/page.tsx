@@ -4,12 +4,17 @@ import { useState, useMemo } from 'react'
 import { Plus, GraduationCap, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useApi } from '@/hooks/useApi'
+import { useAuth } from '@/contexts/AuthContext'
 import { cursos as svc } from '@/services/api'
 import { Modal, DataTable, PageHeader, Loading } from '@/components/ui'
 import type { Column } from '@/components/ui'
 import type { Curso } from '@/types'
+import { can } from '@/lib/permissions'
 
 export default function CursosPage() {
+  const { user } = useAuth()
+  const canCreate = can(user?.perfil, 'cursos.create')
+
   const { data, isLoading, refetch } = useApi(() => svc.list())
   const [search, setSearch] = useState('')
   const [open, setOpen]     = useState(false)
@@ -45,11 +50,11 @@ export default function CursosPage() {
       <PageHeader
         title="Cursos"
         subtitle="Gerencie os cursos da instituição."
-        action={
+        action={canCreate ? (
           <button className="btn-primary" onClick={() => setOpen(true)}>
             <Plus size={16} /> Novo Curso
           </button>
-        }
+        ) : undefined}
       />
 
       <div className="relative mb-4">

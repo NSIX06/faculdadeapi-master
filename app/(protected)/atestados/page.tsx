@@ -5,8 +5,10 @@ import { Plus, Eye, Trash2, Filter, User, Paperclip, X, FileText, Image as Image
 import toast from 'react-hot-toast'
 import { useApi } from '@/hooks/useApi'
 import { atestados as svc, usuarios } from '@/services/api'
+import { useAuth } from '@/contexts/AuthContext'
 import { Modal, StatusBadge, PageHeader, Loading, EmptyState } from '@/components/ui'
 import type { Atestado, StatusAtestado, CreateAtestadoRequest, UpdateStatusRequest } from '@/types'
+import { can } from '@/lib/permissions'
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'Todos os status' },
@@ -135,15 +137,22 @@ function AnexoViewer({ url }: { url: string }) {
 }
 
 export default function AtestadosPage() {
+  const { user } = useAuth()
+  const perfil = user?.perfil
+  const canViewAll     = can(perfil, 'atestados.viewAll')
+  const canDelete      = can(perfil, 'atestados.delete')
+  const canUpdateStatus = can(perfil, 'atestados.updateStatus')
+
   const [statusFilter, setStatusFilter] = useState('')
   const [alunoFilter,  setAlunoFilter]  = useState(0)
   const { data, isLoading, refetch } = useApi(
     () => svc.list({
       ...(statusFilter ? { status: statusFilter as StatusAtestado } : {}),
-      ...(alunoFilter  ? { usuarioId: alunoFilter } : {}),
+      // If user can't view all, force-filter by their own ID
+      usuarioId: canViewAll ? (alunoFilter || undefined) : (user?.id ?? 0),
     }),
   )
-  const { data: userList } = useApi(() => usuarios.list())
+  const { data: userList } = useApi(() => canViewAll ? usuarios.list() : Promise.resolve([]))
   const alunos = (userList ?? []).filter(u => u.perfil === 'ALUNO')
 
   const [createOpen, setCreateOpen] = useState(false)
@@ -162,7 +171,8 @@ export default function AtestadosPage() {
 
   async function handleCreate() {
     try {
-      await svc.create(form)
+      const payload = canViewAll ? form : { ...form, usuarioId: user?.id ?? 0 }
+      await svc.create(payload)
       toast.success('Atestado enviado!')
       refetch()
       resetCreate()
@@ -213,14 +223,16 @@ export default function AtestadosPage() {
         >
           {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
-        <select
-          className="select-field w-auto"
-          value={alunoFilter || ''}
-          onChange={e => { setAlunoFilter(Number(e.target.value)); applyFilters() }}
-        >
-          <option value="">Todos os alunos</option>
-          {alunos.map(a => <option key={a.id} value={a.id}>{a.nome}</option>)}
-        </select>
+        {canViewAll && (
+          <select
+            className="select-field w-auto"
+            value={alunoFilter || ''}
+            onChange={e => { setAlunoFilter(Number(e.target.value)); applyFilters() }}
+          >
+            <option value="">Todos os alunos</option>
+            {alunos.map(a => <option key={a.id} value={a.id}>{a.nome}</option>)}
+          </select>
+        )}
         {(statusFilter || alunoFilter) && (
           <button
             className="btn-ghost text-xs px-2 py-1 text-gray-500"
@@ -265,9 +277,11 @@ export default function AtestadosPage() {
                     <button className="btn-ghost text-xs px-2 py-1" onClick={() => { setDetailItem(a); setStatusForm({ status: a.status }) }}>
                       <Eye size={14} /> Detalhes
                     </button>
-                    <button className="btn-ghost text-xs px-2 py-1 text-red-500 dark:text-red-400" onClick={() => handleDelete(a)}>
-                      <Trash2 size={14} /> Excluir
-                    </button>
+                    {canDelete && (
+                      <button className="btn-ghost text-xs px-2 py-1 text-red-500 dark:text-red-400" onClick={() => handleDelete(a)}>
+                        <Trash2 size={14} /> Excluir
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -278,13 +292,17 @@ export default function AtestadosPage() {
       {/* Create modal */}
       <Modal open={createOpen} onClose={resetCreate} title="Novo Atestado">
         <div className="space-y-4">
-          <div>
-            <label className="label">Aluno</label>
-            <select className="select-field" value={form.usuarioId || ''} onChange={e => setForm(f => ({ ...f, usuarioId: Number(e.target.value) }))}>
-              <option value="">Selecione...</option>
-              {alunos.map(a => <option key={a.id} value={a.id}>{a.nome}</option>)}
-            </select>
-          </div>
+          {canViewAll ? (
+            <div>
+              <label className="label">Aluno</label>
+              <select className="select-field" value={form.usuarioId || ''} onChange={e => setForm(f => ({ ...f, usuarioId: Number(e.target.value) }))}>
+                <option value="">Selecione...</option>
+                {alunos.map(a => <option key={a.id} value={a.id}>{a.nome}</option>)}
+              </select>
+            </div>
+          ) : (
+            <input type="hidden" value={user?.id ?? 0} />
+          )}
           <div>
             <label className="label">Período</label>
             <input className="input-field" placeholder="dd/mm/aaaa a dd/mm/aaaa" value={form.periodo} onChange={e => setForm(f => ({ ...f, periodo: e.target.value }))} />
@@ -354,32 +372,38 @@ export default function AtestadosPage() {
               </div>
             )}
 
-            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Atualizar Status</p>
-              <div className="space-y-3">
-                <select
-                  className="select-field"
-                  value={statusForm.status}
-                  onChange={e => setStatusForm(f => ({ ...f, status: e.target.value as StatusAtestado }))}
-                >
-                  {(['RECEBIDO','EM_ANALISE','APROVADO','RECUSADO'] as StatusAtestado[]).map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-                {statusForm.status === 'RECUSADO' && (
-                  <textarea
-                    className="input-field min-h-[80px] resize-none"
-                    placeholder="Justificativa para recusa..."
-                    value={statusForm.justificativaRecusa ?? ''}
-                    onChange={e => setStatusForm(f => ({ ...f, justificativaRecusa: e.target.value }))}
-                  />
-                )}
-                <div className="flex justify-end gap-2">
-                  <button className="btn-secondary" onClick={() => setDetailItem(null)}>Fechar</button>
-                  <button className="btn-primary" onClick={handleUpdateStatus}>Salvar Status</button>
+            {canUpdateStatus ? (
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Atualizar Status</p>
+                <div className="space-y-3">
+                  <select
+                    className="select-field"
+                    value={statusForm.status}
+                    onChange={e => setStatusForm(f => ({ ...f, status: e.target.value as StatusAtestado }))}
+                  >
+                    {(['RECEBIDO','EM_ANALISE','APROVADO','RECUSADO'] as StatusAtestado[]).map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                  {statusForm.status === 'RECUSADO' && (
+                    <textarea
+                      className="input-field min-h-[80px] resize-none"
+                      placeholder="Justificativa para recusa..."
+                      value={statusForm.justificativaRecusa ?? ''}
+                      onChange={e => setStatusForm(f => ({ ...f, justificativaRecusa: e.target.value }))}
+                    />
+                  )}
+                  <div className="flex justify-end gap-2">
+                    <button className="btn-secondary" onClick={() => setDetailItem(null)}>Fechar</button>
+                    <button className="btn-primary" onClick={handleUpdateStatus}>Salvar Status</button>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
+                <button className="btn-secondary" onClick={() => setDetailItem(null)}>Fechar</button>
+              </div>
+            )}
           </div>
         )}
       </Modal>

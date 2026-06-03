@@ -14,6 +14,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { useApi } from '@/hooks/useApi'
 import { notificacoes } from '@/services/api'
 import { HelpModal } from '@/components/HelpModal'
+import { canAccessPage } from '@/lib/permissions'
 
 const navItems = [
   { href: '/dashboard',    icon: LayoutDashboard, label: 'Painel' },
@@ -72,7 +73,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ href, icon: Icon, label, badge }) => (
+          {navItems.filter(item => canAccessPage(user?.perfil, item.href)).map(({ href, icon: Icon, label, badge }) => (
             <Link
               key={href}
               href={href}
