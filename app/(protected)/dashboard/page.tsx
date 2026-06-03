@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useApi } from '@/hooks/useApi'
 import { atestados, usuarios, turmas, notificacoes } from '@/services/api'
 import { StatusBadge, Loading } from '@/components/ui'
+import { canAccessPage } from '@/lib/permissions'
 import type { StatusAtestado } from '@/types'
 
 const STATUS_LIST: StatusAtestado[] = ['RECEBIDO', 'EM_ANALISE', 'APROVADO', 'RECUSADO']
@@ -24,9 +25,14 @@ function greeting(nome: string) {
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  const { data: atestadosList, isLoading: loadingA } = useApi(() => atestados.list())
-  const { data: usuariosList }  = useApi(() => usuarios.list())
-  const { data: turmasList }    = useApi(() => turmas.list())
+  const perfil = user?.perfil
+  const isAluno = perfil === 'ALUNO' || perfil === 'RESPONSAVEL'
+
+  const { data: atestadosList, isLoading: loadingA } = useApi(
+    () => atestados.list(isAluno && user ? { usuarioId: user.id } : {}),
+  )
+  const { data: usuariosList }  = useApi(() => canAccessPage(perfil, '/usuarios') ? usuarios.list() : Promise.resolve(null))
+  const { data: turmasList }    = useApi(() => canAccessPage(perfil, '/turmas')   ? turmas.list()   : Promise.resolve(null))
   const { data: notifList }     = useApi(() => notificacoes.list())
 
   const total    = atestadosList?.length ?? 0
@@ -35,12 +41,13 @@ export default function DashboardPage() {
     new Date(b.dataEmissao).getTime() - new Date(a.dataEmissao).getTime()
   ).slice(0, 5)
 
-  const stats = [
-    { label: 'Atestados',    value: total,                     icon: FileText,   href: '/atestados',    color: 'text-blue-500',   bg: 'bg-blue-50 dark:bg-blue-950/50' },
-    { label: 'Usuários',     value: usuariosList?.length ?? 0, icon: Users,      href: '/usuarios',     color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/50' },
-    { label: 'Turmas',       value: turmasList?.length ?? 0,   icon: BookMarked, href: '/turmas',       color: 'text-brand-500',  bg: 'bg-brand-50 dark:bg-brand-950/50' },
-    { label: 'Notificações', value: naoLidas,                  icon: Bell,       href: '/notificacoes', color: 'text-amber-500',  bg: 'bg-amber-50 dark:bg-amber-950/50' },
+  const allStats = [
+    { label: 'Atestados',    value: total,                      icon: FileText,   href: '/atestados',    color: 'text-blue-500',   bg: 'bg-blue-50 dark:bg-blue-950/50' },
+    { label: 'Usuários',     value: usuariosList?.length ?? 0,  icon: Users,      href: '/usuarios',     color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/50' },
+    { label: 'Turmas',       value: turmasList?.length ?? 0,    icon: BookMarked, href: '/turmas',       color: 'text-brand-500',  bg: 'bg-brand-50 dark:bg-brand-950/50' },
+    { label: 'Notificações', value: naoLidas,                   icon: Bell,       href: '/notificacoes', color: 'text-amber-500',  bg: 'bg-amber-50 dark:bg-amber-950/50' },
   ]
+  const stats = allStats.filter(s => canAccessPage(perfil, s.href))
 
   if (loadingA) return <Loading />
 
