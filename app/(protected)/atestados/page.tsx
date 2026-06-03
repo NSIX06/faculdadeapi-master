@@ -18,6 +18,13 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'RECUSADO',   label: 'Recusado' },
 ]
 
+const STATUS_LABELS: Record<string, string> = {
+  RECEBIDO:   'Recebido',
+  EM_ANALISE: 'Em Análise',
+  APROVADO:   'Aprovado',
+  RECUSADO:   'Recusado',
+}
+
 const MAX_SIZE_MB = 2
 
 function isDataUrl(s?: string) {
@@ -382,7 +389,7 @@ export default function AtestadosPage() {
                     onChange={e => setStatusForm(f => ({ ...f, status: e.target.value as StatusAtestado }))}
                   >
                     {(['RECEBIDO','EM_ANALISE','APROVADO','RECUSADO'] as StatusAtestado[]).map(s => (
-                      <option key={s} value={s}>{s}</option>
+                      <option key={s} value={s}>{STATUS_LABELS[s]}</option>
                     ))}
                   </select>
                   {statusForm.status === 'RECUSADO' && (
